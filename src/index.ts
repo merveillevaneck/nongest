@@ -1,3 +1,4 @@
+import { env } from "bun";
 import { Hono } from "hono";
 import moment = require("moment");
 import * as cron from "node-cron";
@@ -162,4 +163,7 @@ app.post("/stop-all", (c) => {
     return c.json("stopped all", 200);
 });
 
-export default app;
+export default {
+    port: env.PORT!,
+    fetch: app.fetch,
+};
