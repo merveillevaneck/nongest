@@ -42,6 +42,10 @@ const invoke = async (id: Service["id"]) => {
     return await fetch(service.url, {
         method: service.method,
         body: JSON.stringify(service.payload),
+        headers:
+            service.method === "POST"
+                ? [["Content-Type", "application/json"]]
+                : undefined,
     });
 };
 
@@ -55,7 +59,7 @@ const generateCronAtEvery = (interval: number) => {
     return `*/${seconds} * * * * *`;
 };
 
-const registerService = (service: Service) => {
+const registerService = async (service: Service) => {
     if (services.has(service.id)) {
         debug(`Service with id ${service.id} already exists`);
         return;
@@ -65,9 +69,15 @@ const registerService = (service: Service) => {
         ? generateCronAtEvery(service.interval)
         : generateCronAt(service.interval);
 
-    const scheduleResult = cron.schedule(cronExpression, async () =>
-        invoke(service.id)
-    );
+    if (service.recurring) {
+        await invoke(service.id);
+    }
+
+    const scheduleResult = cron.schedule(cronExpression, async () => {
+        const a = await invoke(service.id);
+        console.log(a);
+        console.log(await a?.json());
+    });
 
     const newService = {
         ...service,
