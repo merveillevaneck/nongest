@@ -38,7 +38,6 @@ const invoke = async (id: Service["id"]) => {
         debug(`Service with id ${id} has no context`);
         return;
     }
-    console.log(`running ${id}`);
     return await fetch(service.url, {
         method: service.method,
         body: JSON.stringify(service.payload),
@@ -74,9 +73,10 @@ const registerService = async (service: Service) => {
     }
 
     const scheduleResult = cron.schedule(cronExpression, async () => {
-        const a = await invoke(service.id);
-        console.log(a);
-        console.log(await a?.json());
+        await invoke(service.id);
+        if (!services.get(service.id)?.stop) {
+            debug(`Service ${service.id} - stop method is undefined.`);
+        }
     });
 
     const newService = {
