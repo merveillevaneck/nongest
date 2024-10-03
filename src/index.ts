@@ -38,7 +38,6 @@ const invoke = async (id: Service["id"]) => {
         debug(`Service with id ${id} has no context`);
         return;
     }
-    console.log(`running ${id}`);
     return await fetch(service.url, {
         method: service.method,
         body: JSON.stringify(service.payload),
@@ -73,11 +72,10 @@ const registerService = async (service: Service) => {
         await invoke(service.id);
     }
 
-    const scheduleResult = cron.schedule(cronExpression, async () => {
-        const a = await invoke(service.id);
-        console.log(a);
-        console.log(await a?.json());
-    });
+    const scheduleResult = cron.schedule(
+        cronExpression,
+        async () => await invoke(service.id)
+    );
 
     const newService = {
         ...service,
@@ -102,7 +100,13 @@ const deregisterService = (id: Service["id"]) => {
 
 const stopAll = () => {
     services.forEach((service, id) => {
-        service.stop?.();
+        if (!service.stop) {
+            debug(
+                `Service with id ${id} does not have a stop method. Please restart server.`
+            );
+            return;
+        }
+        service.stop();
     });
 };
 
