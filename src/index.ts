@@ -100,13 +100,7 @@ const deregisterService = (id: Service["id"]) => {
 
 const stopAll = () => {
     services.forEach((service, id) => {
-        if (!service.stop) {
-            debug(
-                `Service with id ${id} does not have a stop method. Please restart server.`
-            );
-            return;
-        }
-        service.stop();
+        service.stop?.();
     });
 };
 
