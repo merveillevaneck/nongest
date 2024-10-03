@@ -72,10 +72,12 @@ const registerService = async (service: Service) => {
         await invoke(service.id);
     }
 
-    const scheduleResult = cron.schedule(
-        cronExpression,
-        async () => await invoke(service.id)
-    );
+    const scheduleResult = cron.schedule(cronExpression, async () => {
+        await invoke(service.id);
+        if (!services.get(service.id)?.stop) {
+            debug(`Service ${service.id} - stop method is undefined.`);
+        }
+    });
 
     const newService = {
         ...service,
